@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chibuzor Hycienth | Web3 Portfolio</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal: #00ffd5;
+      --purple: #7c4dff;
+      --grad: linear-gradient(90deg, #00ffd5, #7c4dff);
+      --bg: #05060a;
+      --card: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+      --muted: #aaaaaa;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      background: var(--bg);
+      color: #eaeaea;
+      overflow-x: hidden;
+    }
+
+    /* STARS */
+    #stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: white;
+    }
+
+    /* BG GLOW */
+    .bg-glow {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(0,255,213,0.10), transparent 40%),
+        radial-gradient(circle at 80% 10%, rgba(124,77,255,0.13), transparent 45%),
+        radial-gradient(circle at 50% 90%, rgba(0,120,255,0.10), transparent 50%);
+    }
+
+    /* OVERLAY */
+    #overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(2px);
+      z-index: 30;
+    }
+    #overlay.open { display: block; }
+
+    /* DRAWER */
+    #drawer {
+      position: fixed; top: 0; left: 0;
+      height: 100vh; width: 280px;
+      background: rgba(5,6,10,0.97);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border);
+      z-index: 40;
+      transform: translateX(-100%);
+      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+      display: flex; flex-direction: column;
+      padding-bottom: 32px;
+      overflow-y: auto;
+    }
+    #drawer.open { transform: translateX(0); }
+
+    .drawer-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .drawer-logo {
+      font-weight: 700; font-size: 14px; letter-spacing: 2px;
+      background: var(--grad);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .drawer-close {
+      background: none; border: none; color: #666;
+      cursor: pointer; font-size: 22px; line-height: 1;
+    }
+
+    .drawer-avatar-wrap {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 28px 24px 20px;
+    }
+    .avatar-ring {
+      position: relative; margin-bottom: 14px;
+    }
+    .avatar-inner {
+      width: 88px; height: 88px; border-radius: 50%;
+      background: linear-gradient(135deg, #00ffd5, #7c4dff);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px;
+      box-shadow: 0 0 30px rgba(0,255,213,0.4), 0 0 60px rgba(124,77,255,0.25);
+    }
+    .avatar-spin {
+      position: absolute; inset: -6px; border-radius: 50%;
+      border: 2px solid transparent;
+      background: linear-gradient(135deg, #00ffd5, #7c4dff) border-box;
+      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: destination-out;
+      mask-composite: exclude;
+      animation: spin 8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .drawer-name {
+      font-family: Georgia, serif; font-size: 15px;
+      color: var(--teal); font-style: italic; margin-bottom: 4px;
+    }
+    .drawer-tagline {
+      font-size: 9px; letter-spacing: 3px; color: #555; font-weight: 700;
+    }
+
+    .drawer-nav { padding: 0 16px; flex: 1; }
+    .drawer-nav a {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; border-radius: 10px;
+      color: #777; font-size: 14px; font-weight: 500;
+      text-decoration: none; margin-bottom: 4px;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+    .drawer-nav a:hover, .drawer-nav a.active {
+      color: var(--teal);
+      background: rgba(0,255,213,0.07);
+      border-color: rgba(0,255,213,0.25);
+    }
+
+    .drawer-contact { padding: 0 20px; margin-top: 16px; }
+    .drawer-divider {
+      height: 1px; background: var(--border); margin: 14px 0;
+    }
+    .drawer-contact-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11px; color: #666; margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .drawer-contact-item span:last-child {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    .socials { display: flex; gap: 10px; }
+    .social-btn {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--card); border: 1px solid var(--border);
+      cursor: pointer; font-size: 15px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .social-btn:hover {
+      border-color: var(--teal);
+      box-shadow: 0 0 10px rgba(0,255,213,0.3);
+    }
+
+    .drawer-quote {
+      margin: 20px 20px 0;
+      padding: 14px 16px;
+      background: rgba(0,255,213,0.04);
+      border: 1px solid rgba(0,255,213,0.15);
+      border-left: 3px solid var(--teal);
+      border-radius: 10px;
+    }
+    .drawer-quote .qs { font-size: 20px; color: var(--teal); line-height: 1; margin-bottom: 6px; }
+    .drawer-quote p { font-size: 11px; color: #777; font-style: italic; line-height: 1.5; margin-bottom: 8px; }
+    .drawer-quote .qby { font-family: Georgia, serif; font-size: 11px; color: var(--teal); font-style: italic; }
+
+    /* TOP NAV */
+    header {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(5,6,10,0.75);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    #hamburger {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 10px;
+      cursor: pointer;
+      display: flex; flex-direction: column; gap: 5px;
+      transition: border-color 0.2s;
+    }
+    #hamburger:hover { border-color: var(--teal); }
+    #hamburger span {
+      display: block; width: 22px; height: 2px;
+      background: var(--teal); border-radius: 2px;
+      transition: all 0.3s;
+    }
+    #hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    #hamburger.open span:nth-child(2) { opacity: 0; }
+    #hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .header-logo {
+      font-weight: 700; font-size: 14px; letter-spacing: 2px;
+      background: var(--grad);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .header-links { display: flex; gap: 20px; }
+    .header-links a {
+      color: #666; font-size: 12px; font-weight: 600;
+      text-decoration: none; letter-spacing: 1px; transition: color 0.2s;
+    }
+    .header-links a:hover { color: #fff; }
+    .header-links a.active { color: var(--teal); }
+
+    /* MAIN */
+    main { position: relative; z-index: 1; }
+
+    /* HERO */
+    .hero {
+      padding: 80px 64px 64px;
+      background: linear-gradient(135deg, rgba(0,255,213,0.04), rgba(124,77,255,0.06), transparent);
+      border-bottom: 1px solid var(--border);
+      max-width: 1200px; margin: 0 auto;
+    }
+    .hero-grid {
+      display: grid; grid-template-columns: 1fr 340px; gap: 60px; align-items: center;
+    }
+    .hero-tag {
+      font-size: 11px; color: var(--teal); font-weight: 700;
+      letter-spacing: 3px; margin-bottom: 16px; text-transform: uppercase;
+    }
+    h1 { font-size: clamp(40px, 5vw, 72px); font-weight: 900; line-height: 1.05; margin-bottom: 16px; letter-spacing: -2px; }
+    .grad-text {
+      background: var(--grad);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-desc { font-size: 15px; color: var(--muted); line-height: 1.8; max-width: 580px; margin-bottom: 36px; }
+    .hero-btns { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+
+    .btn-primary {
+      padding: 14px 32px; border-radius: 14px;
+      background: var(--grad); border: none;
+      color: #000; font-weight: 700; font-size: 14px;
+      cursor: pointer; transition: opacity 0.2s; text-decoration: none;
+      display: inline-block;
+    }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-outline {
+      padding: 14px 32px; border-radius: 14px;
+      background: transparent; border: 1px solid rgba(255,255,255,0.15);
+      color: #fff; font-weight: 600; font-size: 14px;
+      cursor: pointer; transition: border-color 0.2s; text-decoration: none;
+      display: inline-block;
+    }
+    .btn-outline:hover { border-color: var(--teal); }
+    .avail {
+      display: flex; align-items: center; gap: 6px; font-size: 12px; color: #666;
+    }
+    .avail-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--teal); box-shadow: 0 0 8px var(--teal);
+    }
+
+    /* IDENTITY NODE */
+    .id-node {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 28px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+    .id-node h3 { font-size: 12px; font-weight: 700; color: var(--teal); margin-bottom: 18px; letter-spacing: 2px; }
+    .id-node ul { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .id-node li { display: flex; align-items: flex-start; gap: 12px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .id-node li .ico { font-size: 18px; flex-shrink: 0; }
+
+    /* SECTIONS */
+    .section-wrap { max-width: 1200px; margin: 0 auto; padding: 56px 64px; }
+    .section { margin-bottom: 64px; }
+
+    .section-title {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 24px;
+    }
+    .section-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--teal); box-shadow: 0 0 10px var(--teal);
+      flex-shrink: 0;
+    }
+    .section-title h2 {
+      font-size: 16px; font-weight: 800; color: #eaeaea;
+      letter-spacing: 2px; text-transform: uppercase;
+    }
+
+    /* CARDS GRID */
+    .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 18px; padding: 20px 18px;
+      transition: all 0.25s;
+    }
+    .card:hover {
+      border-color: var(--teal);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,255,213,0.12);
+    }
+    .card.purple-hover:hover {
+      border-color: var(--purple);
+      box-shadow: 0 12px 40px rgba(124,77,255,0.18);
+    }
+
+    /* TRAIT CARDS */
+    .trait-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      margin: 0 auto 12px;
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .trait-label { font-size: 12px; font-weight: 600; color: #ccc; text-align: center; }
+
+    /* SKILL BARS */
+    .skill-card { display: flex; flex-direction: column; }
+    .skill-top {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;
+    }
+    .skill-name { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: #eaeaea; }
+    .skill-pct { font-size: 13px; font-weight: 700; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .bar-track { background: rgba(255,255,255,0.06); border-radius: 4px; height: 5px; overflow: hidden; }
+    .bar-fill {
+      height: 100%; width: 0; border-radius: 4px;
+      background: var(--grad);
+      box-shadow: 0 0 10px rgba(0,255,213,0.5);
+      transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    /* WORK CARDS */
+    .work-icon { font-size: 32px; margin-bottom: 14px; }
+    .work-title { font-size: 14px; font-weight: 700; color: #eaeaea; margin-bottom: 10px; }
+    .work-desc { font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+    /* SERVICE CARDS */
+    .service-icon-wrap {
+      width: 52px; height: 52px; border-radius: 14px; margin-bottom: 18px;
+      background: linear-gradient(135deg, rgba(0,255,213,0.1), rgba(124,77,255,0.1));
+      border: 1px solid rgba(0,255,213,0.25);
+      display: flex; align-items: center; justify-content: center; font-size: 24px;
+    }
+    .service-title { font-size: 14px; font-weight: 700; color: #eaeaea; margin-bottom: 10px; }
+    .service-desc { font-size: 12px; color: var(--muted); line-height: 1.7; }
+
+    /* EDUCATION */
+    .edu-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 26px;
+    }
+    .edu-inner { display: flex; gap: 16px; align-items: flex-start; }
+    .edu-icon {
+      width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0;
+      background: var(--grad); display: flex; align-items: center; justify-content: center; font-size: 22px;
+    }
+    .edu-title { font-size: 14px; font-weight: 700; color: #eaeaea; margin-bottom: 8px; }
+    .edu-desc { font-size: 12px; color: var(--muted); line-height: 1.7; margin-bottom: 12px; }
+    .edu-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(0,255,213,0.12); border: 1px solid rgba(0,255,213,0.25);
+      border-radius: 20px; padding: 5px 12px;
+    }
+    .edu-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 6px var(--teal); }
+    .edu-badge span { font-size: 11px; color: var(--teal); font-weight: 600; }
+
+    /* LEADERSHIP */
+    .lead-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 26px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    }
+    .lead-item { display: flex; align-items: center; gap: 10px; }
+    .lead-box {
+      width: 20px; height: 20px; border-radius: 6px;
+      background: rgba(0,255,213,0.12); border: 1px solid rgba(0,255,213,0.25);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .lead-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); }
+    .lead-text { font-size: 12px; color: var(--muted); }
+
+    /* CONTACT */
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+    .contact-desc { font-size: 15px; color: var(--muted); line-height: 1.8; margin-bottom: 28px; }
+    .contact-item { display: flex; gap: 14px; align-items: center; margin-bottom: 18px; }
+    .contact-icon {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: rgba(0,255,213,0.08); border: 1px solid rgba(0,255,213,0.2);
+      display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
+    }
+    .contact-label { font-size: 10px; color: #555; letter-spacing: 1px; margin-bottom: 2px; }
+    .contact-val { font-size: 13px; color: var(--teal); }
+
+    .form-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 28px;
+    }
+    .form-card input, .form-card textarea {
+      width: 100%; padding: 14px 16px;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.4); border: 1px solid var(--border);
+      color: #fff; font-size: 14px; font-family: inherit;
+      margin-bottom: 14px; outline: none; resize: vertical;
+      transition: border-color 0.2s;
+    }
+    .form-card input:focus, .form-card textarea:focus { border-color: var(--teal); }
+    .form-card input::placeholder, .form-card textarea::placeholder { color: #444; }
+    #success-msg {
+      display: none;
+      background: rgba(0,255,213,0.1); border: 1px solid rgba(0,255,213,0.25);
+      border-radius: 10px; padding: 12px 16px; margin-bottom: 18px;
+      font-size: 13px; color: var(--teal);
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center; padding: 32px 0;
+      border-top: 1px solid var(--border); color: #555;
+      max-width: 1200px; margin: 0 auto;
+    }
+    footer .footer-name {
+      font-family: Georgia, serif; font-size: 22px; font-style: italic;
+      background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    footer p { font-size: 12px; }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: rgba(0,255,213,0.2); border-radius: 4px; }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .hero { padding: 60px 24px 40px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 32px; }
+      h1 { font-size: 40px; }
+      .section-wrap { padding: 40px 24px; }
+      .grid-4 { grid-template-columns: repeat(2,1fr); }
+      .grid-3 { grid-template-columns: 1fr 1fr; }
+      .contact-grid, .grid-2 { grid-template-columns: 1fr; }
+      .header-links { display: none; }
+    }
+    @media (max-width: 560px) {
+      .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="stars"></div>
+<div class="bg-glow"></div>
+
+<!-- OVERLAY -->
+<div id="overlay" onclick="closeMenu()"></div>
+
+<!-- DRAWER -->
+<div id="drawer">
+  <div class="drawer-header">
+    <span class="drawer-logo">CHIBUZOR // WEB3</span>
+    <button class="drawer-close" onclick="closeMenu()">✕</button>
+  </div>
+  <div class="drawer-avatar-wrap">
+    <div class="avatar-ring">
+      <div class="avatar-inner">👨‍💻</div>
+      <div class="avatar-spin"></div>
+    </div>
+    <div class="drawer-name">Chibuzor Hycienth</div>
+    <div class="drawer-tagline">CREATIVE • EDUCATOR • INNOVATOR</div>
+  </div>
+  <nav class="drawer-nav">
+    <a href="#about" onclick="closeMenu()">👤 About</a>
+    <a href="#skills" onclick="closeMenu()">📊 Skills</a>
+    <a href="#work" onclick="closeMenu()">💼 Work</a>
+    <a href="#services" onclick="closeMenu()">⚙️ Services</a>
+    <a href="#education" onclick="closeMenu()">🎓 Education</a>
+    <a href="#leadership" onclick="closeMenu()">👥 Leadership</a>
+    <a href="#contact" onclick="closeMenu()">✉️ Contact</a>
+  </nav>
+  <div class="drawer-contact">
+    <div class="drawer-divider"></div>
+    <div class="drawer-contact-item"><span>📱</span><span>+234 7061235091
+    <p>+234 8115460322</p>
+    </span></div>
+    <div class="drawer-contact-item"><span>✉️</span><span>chibuzorhycienth@gmail.com
+    <p>itchiboy53@gmail.com</p>
+    </span></div>
+    <div class="drawer-contact-item"><span>📍</span><span>Nigeria</span></div>
+    <div class="drawer-contact-item"><span>🌐</span><span>chibuzor-creative.vercel.app</span></div>
+    <div class="drawer-divider"></div>
+    <div class="socials">
+      <button class="social-btn">✈️</button>
+      <button class="social-btn">🐦</button>
+      <button class="social-btn">💼</button>
+      <button class="social-btn">📷</button>
+    </div>
+  </div>
+  <div class="drawer-quote">
+    <div class="qs">"</div>
+    <p>Discipline today, Excellence tomorrow.</p>
+    <div class="qby">— Chibuzor H.</div>
+  </div>
+</div>
+
+<!-- TOP NAV -->
+<header>
+  <button id="hamburger" onclick="toggleMenu(event)">
+    <span></span><span></span><span></span>
+  </button>
+  <span class="header-logo">MY PORTFOLIO</span>
+  <div class="header-links">
+    <a href="#about">About</a>
+    <a href="#skills">Skills</a>
+    <a href="#work">Work</a>
+    <a href="#contact">Contact</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-grid">
+      <div>
+        <p class="hero-tag">WEB3 CREATOR • AI VIDEO COACH • DESIGNER</p>
+        <h1>Chibuzor <span class="grad-text">Hycienth</span></h1>
+        <p class="hero-desc">I design cinematic digital experiences, teach AI video creation, and build futuristic visual identities for the next generation of the internet.</p>
+        <div class="hero-btns">
+          <a href="#work" class="btn-primary">Explore Work</a>
+          <a href="#contact" class="btn-outline">Contact</a>
+          <div class="avail"><div class="avail-dot"></div> Available for Projects</div>
+        </div>
+      </div>
+      <div class="id-node">
+        <h3>IDENTITY NODE</h3>
+        <ul>
+          <li><span class="ico">🎓</span>Computer Science Education Student</li>
+          <li><span class="ico">🎬</span>AI Video Design Coach</li>
+          <li><span class="ico">🎨</span>Graphics &amp; Web3 Designer</li>
+          <li><span class="ico">🧠</span>Leadership &amp; Discipline Trainer</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-wrap">
+
+    <!-- ABOUT -->
+    <section id="about" class="section">
+      <div class="section-title"><div class="section-dot"></div><h2>About Me</h2></div>
+      <p style="font-size:15px;color:var(--muted);line-height:1.8;max-width:700px;margin-bottom:32px;">
+        I operate at the intersection of technology, creativity, and education. My focus is building cinematic visuals, teaching AI-driven video production, and developing strong creative discipline and leadership in others.
+      </p>
+      <div class="grid-4">
+        <div class="card" style="text-align:center;">
+          <div class="trait-icon" style="background:rgba(0,255,213,0.1);border:1px solid rgba(0,255,213,0.3);">✏️</div>
+          <div class="trait-label">Creative Thinker</div>
+        </div>
+        <div class="card" style="text-align:center;">
+          <div class="trait-icon" style="background:rgba(124,77,255,0.1);border:1px solid rgba(124,77,255,0.3);">⚡</div>
+          <div class="trait-label">Problem Solver</div>
+        </div>
+        <div class="card" style="text-align:center;">
+          <div class="trait-icon" style="background:rgba(0,191,255,0.1);border:1px solid rgba(0,191,255,0.3);">🎯</div>
+          <div class="trait-label">Goal Driven</div>
+        </div>
+        <div class="card" style="text-align:center;">
+          <div class="trait-icon" style="background:rgba(0,255,213,0.1);border:1px solid rgba(0,255,213,0.3);">👥</div>
+          <div class="trait-label">Team Leader</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SKILLS -->
+    <section id="skills" class="section">
+      <div class="section-title"><div class="section-dot"></div><h2>Core Skills</h2></div>
+      <div class="grid-3" id="skills-grid">
+        <div class="card skill-card">
+          <div class="skill-top"><div class="skill-name"><span>🎬</span>AI Video Design</div><span class="skill-pct">95%</span></div>
+          <div class="bar-track"><div class="bar-fill" data-level="95"></div></div>
+        </div>
+        <div class="card skill-card">
+          <div class="skill-top"><div class="skill-name"><span>✏️</span>Graphics Design</div><span class="skill-pct">90%</span></div>
+          <div class="bar-track"><div class="bar-fill" data-level="90"></div></div>
+        </div>
+        <div class="card skill-card">
+          <div class="skill-top"><div class="skill-name"><span>▶️</span>Video Editing</div><span class="skill-pct">88%</span></div>
+          <div class="bar-track"><div class="bar-fill" data-level="88"></div></div>
+        </div>
+        <div class="card skill-card">
+          <div class="skill-top"><div class="skill-name"><span>🖥️</span>UI/UX Design</div><span class="skill-pct">70%</span></div>
+          <div class="bar-track"><div class="bar-fill" data-level="70"></div></div>
+        </div>
+        <div class="card skill-card">
+          <div class="skill-top"><div class="skill-name"><span>💻</span>Web Development</div><span class="skill-pct">70%</span></div>
+          <div class="bar-track"><div class="bar-fill" data-level="70"></div></div>
+        </div>
+        <div class="card skill-card">
+          <div class="skill-top"><div class="skill-name"><span>👥</span>Teaching &amp; Coaching</div><span class="skill-pct">92%</span></div>
+          <div class="bar-track"><div class="bar-fill" data-level="92"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORK -->
+    <section id="work" class="section">
+      <div class="section-title"><div class="section-dot"></div><h2>Focus Areas</h2></div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="work-icon">🎬</div>
+          <div class="work-title">AI Film &amp; Video Coaching</div>
+          <div class="work-desc">Guiding creators through AI-powered video workflows and cinematic storytelling techniques.</div>
+        </div>
+        <div class="card">
+          <div class="work-icon">🎨</div>
+          <div class="work-title">Brand Identity Systems</div>
+          <div class="work-desc">Brand identities, social media kits, and digital visual experiences.</div>
+        </div>
+        <div class="card">
+          <div class="work-icon">🧠</div>
+          <div class="work-title">Creative Mentorship</div>
+          <div class="work-desc">One-on-one coaching on discipline, creativity, and building a digital presence.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section id="services" class="section">
+      <div class="section-title"><div class="section-dot"></div><h2>What I Do</h2></div>
+      <div class="grid-4">
+        <div class="card purple-hover">
+          <div class="service-icon-wrap">🎬</div>
+          <div class="service-title">AI Video Design</div>
+          <div class="service-desc">Cinematic AI videos, concepts, ads &amp; promotional content.</div>
+        </div>
+        <div class="card purple-hover">
+          <div class="service-icon-wrap">🎨</div>
+          <div class="service-title">Graphics Design</div>
+          <div class="service-desc">Logos, branding, social media designs &amp; visual identity.</div>
+        </div>
+        <div class="card purple-hover">
+          <div class="service-icon-wrap">🎓</div>
+          <div class="service-title">Creative Coaching</div>
+          <div class="service-desc">Teaching AI video design, creative skills, confidence &amp; discipline.</div>
+        </div>
+        <div class="card purple-hover">
+          <div class="service-icon-wrap">💻</div>
+          <div class="service-title">Digital Solutions</div>
+          <div class="service-desc">Web development, UI/UX design &amp; digital project solutions.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EDUCATION + LEADERSHIP -->
+    <div class="grid-2 section">
+      <section id="education">
+        <div class="section-title"><div class="section-dot"></div><h2>Education</h2></div>
+        <div class="edu-card">
+          <div class="edu-inner">
+            <div class="edu-icon">🎓</div>
+            <div>
+              <div class="edu-title">B.tech. Computer Science Education</div>
+              <div class="edu-desc">Building strong foundation in computing, education, problem solving and leadership.</div>
+              <div class="edu-badge"><div class="edu-badge-dot"></div><span>In Progress</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="leadership">
+        <div class="section-title"><div class="section-dot"></div><h2>Leadership &amp; Core Strengths</h2></div>
+        <div class="lead-card">
+          <div class="lead-item"><div class="lead-box"><div class="lead-dot"></div></div><span class="lead-text">Leadership Skills</span></div>
+          <div class="lead-item"><div class="lead-box"><div class="lead-dot"></div></div><span class="lead-text">Team Collaboration</span></div>
+          <div class="lead-item"><div class="lead-box"><div class="lead-dot"></div></div><span class="lead-text">Confidence Building</span></div>
+          <div class="lead-item"><div class="lead-box"><div class="lead-dot"></div></div><span class="lead-text">Effective Communication</span></div>
+          <div class="lead-item"><div class="lead-box"><div class="lead-dot"></div></div><span class="lead-text">Discipline &amp; Commitment</span></div>
+          <div class="lead-item"><div class="lead-box"><div class="lead-dot"></div></div><span class="lead-text">Mentorship &amp; Guidance</span></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- CONTACT -->
+    <section id="contact" class="section">
+      <div class="section-title"><div class="section-dot"></div><h2>Contact</h2></div>
+      <div class="contact-grid">
+        <div>
+          <p class="contact-desc">Have a project in mind, want coaching, or just want to connect? Drop a message — I'm open for collaborations and conversations.</p>
+          <div class="contact-item">
+            <div class="contact-icon">📱</div>
+            <div><div class="contact-label">PHONE</div><div class="contact-val">+234 7061235091
+            <p>+234 8115460322</p>
+            </div></div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-icon">✉️</div>
+            <div><div class="contact-label">EMAIL</div><div class="contact-val">chibuzorhycienth@gmail.com
+            <p>itchiboy53@gmail.com</p>
+            </div></div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-icon">🌐</div>
+            <div><div class="contact-label">WEBSITE</div><div class="contact-val">chibuzor-creative.vercel.app</div></div>
+          </div>
+        </div>
+        <div class="form-card">
+          <div id="success-msg">✅ Message sent! I'll get back to you soon.</div>
+          <input type="text" id="fname" placeholder="Name" />
+          <input type="email" id="femail" placeholder="Email" />
+          <textarea id="fmsg" rows="5" placeholder="Message"></textarea>
+          <button class="btn-primary" style="width:100%;padding:15px;" onclick="sendMsg()">Send Message</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="footer-name">Chibuzor Hycienth</div>
+      <p>© 2026 Chibuzor Hycienth • Web3 Creative System</p>
+    </footer>
+
+  </div>
+</main>
+
+<script>
+  // Stars
+  const starsEl = document.getElementById('stars');
+  for (let i = 0; i < 50; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2 + 1 + 'px';
+    s.style.cssText = `top:${Math.random()*100}%;left:${Math.random()*100}%;width:${size};height:${size};opacity:${Math.random()*0.5+0.08}`;
+    starsEl.appendChild(s);
+  }
+
+  // Menu
+  function toggleMenu(e) {
+    e.stopPropagation();
+    const drawer = document.getElementById('drawer');
+    const overlay = document.getElementById('overlay');
+    const hamburger = document.getElementById('hamburger');
+    const isOpen = drawer.classList.contains('open');
+    drawer.classList.toggle('open');
+    overlay.classList.toggle('open');
+    hamburger.classList.toggle('open');
+  }
+  function closeMenu() {
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('overlay').classList.remove('open');
+    document.getElementById('hamburger').classList.remove('open');
+  }
+
+  // Animated skill bars (IntersectionObserver)
+  const bars = document.querySelectorAll('.bar-fill');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          entry.target.style.width = entry.target.dataset.level + '%';
+        }, i * 100);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+  bars.forEach(b => observer.observe(b));
+
+  // Contact form
+  function sendMsg() {
+    const name = document.getElementById('fname').value.trim();
+    const email = document.getElementById('femail').value.trim();
+    const msg = document.getElementById('fmsg').value.trim();
+    if (name && email && msg) {
+      document.getElementById('fname').value = '';
+      document.getElementById('femail').value = '';
+      document.getElementById('fmsg').value = '';
+      const s = document.getElementById('success-msg');
+      s.style.display = 'block';
+      setTimeout(() => s.style.display = 'none', 4000);
+    }
+  }
+</script>
+</body>
+</html>
